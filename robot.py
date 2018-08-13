@@ -69,11 +69,12 @@ while True:
                 utilities.interrupt_background_sound,
                 args=(event.sound_file,)
             )
-            # Pass in the mic feed here!
+            vt3_sound = pygame.mixer.Sound(buffer=vt3_stream)
+            vt3_sound.play()
         elif event.type == 26:
             logging.info("Speaker is done. Play a fun sound then"
                          "resume background")
-            # Stop the mic feed here!
+            vt3_sound.stop()
             position, interrupt_sound_file = interrupt_thread.get()
             utilities.resume_background_sound(position, interrupt_sound_file)
 
