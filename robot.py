@@ -5,6 +5,7 @@ import os
 import logging
 import spectrum
 import settings
+import pyaudio
 from multiprocessing.pool import ThreadPool
 
 # This is needed to fake out pygame.display.init()
@@ -14,6 +15,13 @@ os.environ["SDL_VIDEODRIVER"] = "dummy"
 sampler = spectrum.SWHear(updatesPerSecond=10)
 sampler.stream_start()
 lastRead = sampler.chunksRead
+
+audio = pyaudio.PyAudio()
+vt3_stream = audio.open(format=pyaudio.paInt16, channels=1,
+                        rate=44100, input=True,
+                        frames_per_buffer=1024, input_device_index=0)
+
+# Start another microphone for pass-thru
 
 # Show progress of the program
 logging.basicConfig(level=logging.DEBUG)
@@ -31,7 +39,7 @@ recording = []
 recording_buffer = []
 record_counter = 0
 
-# Counters for determining begginning and end of speech
+# Counters for determining beginning and end of speech
 speaker_begin = 0
 speaker_end = 0
 
@@ -61,19 +69,20 @@ while True:
                 utilities.interrupt_background_sound,
                 args=(event.sound_file,)
             )
+            # Pass in the mic feed here!
         elif event.type == 26:
-            logging.info("Resumming background sounds.")
+            logging.info("Speaker is done. Play a fun sound then"
+                         "resume background")
+            # Stop the mic feed here!
             position, interrupt_sound_file = interrupt_thread.get()
-            resume_thread = pool.apply_async(
-                utilities.resume_background_sound,
-                args=(position, interrupt_sound_file)
-            )
+            utilities.resume_background_sound(position, interrupt_sound_file)
 
     # get the next new sample
     while lastRead == sampler.chunksRead:
         time.sleep(.1)
     lastRead = sampler.chunksRead
 
+    """
     # If we are recording, get the data into a list for later file capture.
     if record_to_file:
         recording.append(sampler.stream.read(sampler.chunk))
@@ -84,10 +93,11 @@ while True:
         while len(recording_buffer) >= settings.RECORDING_BUFFER_SIZE:
             recording_buffer.pop(0)
         recording_buffer.append(sampler.stream.read(sampler.chunk))
+    """
 
     # get FFT data on latest sample
     sample = utilities.averaged_spectrogram(sampler.fft)
-
+    #print(sample)
     # If audio spectrum levels get high enough long enough, we have a speaker.
     if utilities.frequency_volume_trigger(settings.SPECTRUM_TRIGGER_LEVELS,
                                           settings.SPECTRUM_IGNORE_LEVELS,
@@ -119,5 +129,5 @@ while True:
                 record_to_file = False
                 recording = recording_buffer + recording
                 recording_buffer = []
-                utilities.save_audio_data(recording)
+                #utilities.save_audio_data(recording)
                 recording = []
