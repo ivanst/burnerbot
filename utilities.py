@@ -164,3 +164,9 @@ def save_audio_data(audio_data):
     cursor.setframerate(44100)
     cursor.writeframes(b''.join(audio_data))
     cursor.close()
+
+
+def passthru(indata, outdata, frames, time, status):
+    if status:
+        print(status)
+    outdata[:] = indata
