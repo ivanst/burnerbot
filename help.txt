@@ -1,0 +1,2 @@
+# Maximum volume
+amixer -D pulse sset Master 100%
