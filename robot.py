@@ -59,20 +59,11 @@ while True:
             )
         elif event.type == 25:
             logging.info("Interrupt signal received.")
-            interrupt_thread = pool.apply_async(
-                utilities.interrupt_background_sound,
-                args=(event.sound_file,)
-            )
-            record = True
-            synth_thread = pool.apply_async(
-                utilities.passthrough()
-            )
+            interrupt_thread = pool.apply_async(utilities.synth_sound(True))
         elif event.type == 26:
             logging.info("Speaker is done. Play a fun sound then"
                          "resume background")
-            record = False
-            position, interrupt_sound_file = interrupt_thread.get()
-            utilities.resume_background_sound(position, interrupt_sound_file)
+            interrupt_thread = pool.apply_async(utilities.synth_sound(False))
 
     # get the next new sample
     while lastRead == sampler.chunksRead:
