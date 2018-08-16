@@ -6,7 +6,6 @@ import logging
 import spectrum
 import settings
 import pyaudio
-import sounddevice
 from multiprocessing.pool import ThreadPool
 
 # This is needed to fake out pygame.display.init()
@@ -16,11 +15,6 @@ os.environ["SDL_VIDEODRIVER"] = "dummy"
 sampler = spectrum.SWHear(updatesPerSecond=10, device=settings.CLEAN_MIC)
 sampler.stream_start()
 lastRead = sampler.chunksRead
-
-audio = pyaudio.PyAudio()
-vt3_stream = sounddevice.Stream(device=settings.SYNTH_MIC)
-
-# Start another microphone for pass-thru
 
 # Show progress of the program
 logging.basicConfig(level=logging.DEBUG)
@@ -37,6 +31,7 @@ record_to_file = False
 recording = []
 recording_buffer = []
 record_counter = 0
+record = False
 
 # Counters for determining beginning and end of speech
 speaker_begin = 0
@@ -45,7 +40,7 @@ speaker_end = 0
 # Define for the whole method
 interrupt_thread = None
 resume_thread = None
-pool = ThreadPool(processes=1)
+pool = ThreadPool(processes=3)
 
 while True:
     # Process all events on the queue first
@@ -68,9 +63,14 @@ while True:
                 utilities.interrupt_background_sound,
                 args=(event.sound_file,)
             )
+            record = True
+            synth_thread = pool.apply_async(
+                utilities.passthrough()
+            )
         elif event.type == 26:
             logging.info("Speaker is done. Play a fun sound then"
                          "resume background")
+            record = False
             position, interrupt_sound_file = interrupt_thread.get()
             utilities.resume_background_sound(position, interrupt_sound_file)
 
