@@ -166,7 +166,34 @@ def save_audio_data(audio_data):
     cursor.close()
 
 
-def passthru(indata, outdata, frames, time, status):
-    if status:
-        print(status)
-    outdata[:] = indata
+def passthrough():
+    WIDTH = 2
+    CHANNELS = 1
+    RATE = 44100
+
+    p = pyaudio.PyAudio()
+
+    def callback(in_data, frame_count, time_info, status):
+        return in_data, pyaudio.paContinue
+
+    stream = p.open(
+                    format=p.get_format_from_width(WIDTH),
+                    channels=CHANNELS,
+                    rate=RATE,
+                    input=True,
+                    output=True,
+                    stream_callback=callback,
+                    input_device_index=settings.SYNTH_MIC,
+                    output_device_index=settings.MIXED_OUT,
+                )
+
+    stream.start_stream()
+
+    global record
+    while record:
+        time.sleep(0.2)
+
+    stream.stop_stream()
+    stream.close()
+
+    p.terminate()
