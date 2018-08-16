@@ -13,12 +13,12 @@ from multiprocessing.pool import ThreadPool
 os.environ["SDL_VIDEODRIVER"] = "dummy"
 
 # Start microphone data collection stream
-sampler = spectrum.SWHear(updatesPerSecond=10, device=7)
+sampler = spectrum.SWHear(updatesPerSecond=10, device=settings.CLEAN_MIC)
 sampler.stream_start()
 lastRead = sampler.chunksRead
 
 audio = pyaudio.PyAudio()
-vt3_stream = sounddevice.Stream(device=(6))
+vt3_stream = sounddevice.Stream(device=settings.SYNTH_MIC)
 
 # Start another microphone for pass-thru
 
