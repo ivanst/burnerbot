@@ -1,3 +1,8 @@
+# Devices
+CLEAN_MIC = 7
+SYNTH_MIC = 6
+MIXED_OUT = 7
+
 # How long to fade music
 FADE_TIME = 1000
 # Background volume level
