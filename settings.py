@@ -7,6 +7,7 @@ MIXED_OUT = 7
 FADE_TIME = 1000
 # Background volume level
 BG_VOLUME = 1.0
+SYNTH_VOLUME = 100
 # Wait this long after levels drop below "speaking" levels
 END_SPEAKING_TIME = 1
 

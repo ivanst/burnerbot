@@ -7,7 +7,6 @@ import time
 import math
 import struct
 import numpy as np
-import pyaudio
 import alsaaudio
 
 
@@ -35,11 +34,29 @@ def select_random_file_from_directory(path, last_file=None):
     return path + return_file
 
 
-def background_sound_player(sound_files_path=None, start=0, play_file=None,
-                            last_file=None):
+def select_in_order_from_directory(path, last_file=-1):
     """
-    A sound player that randomly selects a sound file from sound_files_path and
-    plays it.
+    selects files in order from a directory
+    Args:
+        path (str): the path to the directory where the files to be randomly
+            selected are kept
+        last_file (int): the last file selected by list integer location.
+
+    Returns:
+        random file name selected form directory with full path.
+
+    """
+    files = sorted(os.listdir(path))
+    select_file = last_file + 1
+    return path + files[select_file]
+    logging.info("Selected file is " + select_file)
+    return path + return_file
+
+
+def background_sound_player(sound_files_path="background_sound/", start=0,
+                            play_file=None, last_file=None):
+    """
+    A sound player that randomly selects a background sound file in order.
     Args:
         sound_files_path (str): the path to all the background sound files
         start (float): Start position for music
@@ -48,8 +65,7 @@ def background_sound_player(sound_files_path=None, start=0, play_file=None,
         Complete path to sound file used
     """
     if play_file is None:
-        sound_file = select_random_file_from_directory(sound_files_path,
-                                                       last_file)
+        sound_file = select_in_order_from_directory(sound_files_path)
     else:
         sound_file = play_file
     pygame.mixer.music.set_volume(settings.BG_VOLUME)
@@ -60,39 +76,43 @@ def background_sound_player(sound_files_path=None, start=0, play_file=None,
     return sound_file
 
 
-def synth_sound(on=True, background_sound_device=settings.MIXED_OUT,
-                synth_sound_device=settings.SYNTH_MIC):
+def synth_sound(on=True, synth_sound_device=settings.SYNTH_MIC):
     """
-    Turn volume down on background sound and turn up mic on synth sound
+    Turn volume down on background sound and turn up mic on synth sound.
     Params:
         background_sound_device:
-        synth_sound_device:
+        synth_sound_device
     """
     if on:
         mixvol = 0
-        synthvol=100
+        synthvol=settings.SYNTH_VOLUME
+        message = "Reducing volume on background sound and increasing synth"
     else:
-        mixvol = 100
+        mixvol = settings.BG_VOLUME
         synthvol = 0
-    logging.info("Reducing volume on background sound and increasing synth")
-    bg_mixer = alsaaudio.Mixer(control='Master', id=0, cardindex=-1,
-                               device='default')
+        message = "Increasing volume on background and decreasing synth"
+    logging.info(message)
     synth_mixer = alsaaudio.Mixer(control='Capture', id=0, cardindex=-1,
                                   device='default')
-    bg_mixer.setvolume(mixvol)
+    pygame.mixer.music.set_volume(mixvol)
     synth_mixer.setvolume(synthvol)
 
 
-def play_foreground_sound(sound_file="interrupt_sound/phone.ogg"):
-    pygame.mixer.music.load(sound_file)
-    pygame.mixer.music.play()
+def foreground_sound():
+    """
+    Play a sound in the foreground over the background sound track.
+    :return:
+    """
+    pygame.mixer.music.pause()
+    sound_file = select_random_file_from_directory("interrupt_sound/")
+    pygame.mixer.Sound(sound_file).play()
+    pygame.mixer.music.unpause()
 
 
 def resume_background_sound():
     # first make sure nothing is playing
     while pygame.mixer.music.get_busy():
         time.sleep(.25)
-
 
 
 def get_rms(sound_block):
@@ -157,37 +177,3 @@ def averaged_spectrogram(np_data_array, divisions=60):
         spectrogram_array.append(int(np.mean(chunk_array) / 1000))
         i = i+1
     return spectrogram_array
-
-
-def passthrough():
-    WIDTH = 2
-    CHANNELS = 1
-    RATE = 44100
-
-    p = pyaudio.PyAudio()
-
-    def callback(in_data, frame_count, time_info, status):
-        return in_data, pyaudio.paContinue
-
-    stream = p.open(
-                    format=p.get_format_from_width(WIDTH),
-                    channels=CHANNELS,
-                    rate=RATE,
-                    input=True,
-                    output=True,
-                    stream_callback=callback,
-                    input_device_index=settings.SYNTH_MIC,
-                    output_device_index=settings.MIXED_OUT,
-                )
-
-    stream.start_stream()
-
-    global record
-    record = True
-    while record:
-        time.sleep(0.2)
-
-    stream.stop_stream()
-    stream.close()
-
-    p.terminate()

@@ -24,7 +24,7 @@ pygame.display.init()
 pygame.mixer.init(frequency=44100, channels=2, size=-16)
 
 # Start background music
-sound_file = utilities.background_sound_player("background_sound/")
+sound_file = utilities.background_sound_player()
 
 # Start without recording enabled
 record_to_file = False
@@ -59,11 +59,12 @@ while True:
             )
         elif event.type == 25:
             logging.info("Interrupt signal received.")
-            interrupt_thread = pool.apply_async(utilities.synth_sound(True))
+            utilities.synth_sound()
         elif event.type == 26:
             logging.info("Speaker is done. Play a fun sound then"
                          "resume background")
-            interrupt_thread = pool.apply_async(utilities.synth_sound(False))
+            utilities.synth_sound(False)
+            utilities.foreground_sound()
 
     # get the next new sample
     while lastRead == sampler.chunksRead:
