@@ -105,7 +105,9 @@ def foreground_sound():
     """
     pygame.mixer.music.pause()
     sound_file = select_random_file_from_directory("interrupt_sound/")
-    pygame.mixer.Sound(sound_file).play()
+    channel = pygame.mixer.Sound(sound_file).play()
+    if channel.get_busy():
+        time.sleep(.2)
     pygame.mixer.music.unpause()
 
 

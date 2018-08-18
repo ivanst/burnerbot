@@ -64,7 +64,7 @@ while True:
             logging.info("Speaker is done. Play a fun sound then"
                          "resume background")
             utilities.synth_sound(False)
-            utilities.foreground_sound()
+            pool.apply_async(utilities.foreground_sound())
 
     # get the next new sample
     while lastRead == sampler.chunksRead:
