@@ -1,53 +1,30 @@
-#!/usr/bin/env python3
-"""Pass input directly to output.
+import pyaudio
+import time
 
-See https://www.assembla.com/spaces/portaudio/subversion/source/HEAD/portaudio/trunk/test/patest_wire.c
+WIDTH = 2
+CHANNELS = 2
+RATE = 44100
 
-"""
-import argparse
-import logging
+p = pyaudio.PyAudio()
 
+def callback(in_data, frame_count, time_info, status):
+    return (in_data, pyaudio.paContinue)
 
-def int_or_str(text):
-    """Helper function for argument parsing."""
-    try:
-        return int(text)
-    except ValueError:
-        return text
+stream = p.open(format=p.get_format_from_width(2),
+                channels=1,
+                rate=44100,
+                input=True,
+                output=True,
+                input_device_index=6,
+                output_device_index=6,
+                stream_callback=callback)
 
+stream.start_stream()
 
-parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument('-i', '--input-device', type=int_or_str,
-                    help='input device ID or substring')
-parser.add_argument('-o', '--output-device', type=int_or_str,
-                    help='output device ID or substring')
-parser.add_argument('-c', '--channels', type=int, default=2,
-                    help='number of channels')
-parser.add_argument('-t', '--dtype', help='audio data type')
-parser.add_argument('-s', '--samplerate', type=float, help='sampling rate')
-parser.add_argument('-b', '--blocksize', type=int, help='block size')
-parser.add_argument('-l', '--latency', type=float, help='latency in seconds')
-args = parser.parse_args()
+while stream.is_active():
+    time.sleep(0.1)
 
-try:
-    import sounddevice as sd
-    import numpy  # Make sure NumPy is loaded before it is used in the callback
-    assert numpy  # avoid "imported but unused" message (W0611)
+stream.stop_stream()
+stream.close()
 
-    def callback(indata, outdata, frames, time, status):
-        if status:
-            print(status)
-        outdata[:] = indata
-
-    with sd.Stream(device=(args.input_device, args.output_device),
-                   samplerate=args.samplerate, blocksize=args.blocksize,
-                   dtype=args.dtype, latency=args.latency,
-                   channels=args.channels, callback=callback):
-        print('#' * 80)
-        print('press Return to quit')
-        print('#' * 80)
-        input()
-except KeyboardInterrupt:
-    parser.exit('\nInterrupted by user')
-except Exception as e:
-    parser.exit(type(e).__name__ + ': ' + str(e))
+p.terminate()
