@@ -71,19 +71,6 @@ while True:
         time.sleep(.1)
     lastRead = sampler.chunksRead
 
-    """
-    # If we are recording, get the data into a list for later file capture.
-    if record_to_file:
-        recording.append(sampler.stream.read(sampler.chunk))
-        record_counter = record_counter + 1
-    else:
-        # Always keep the last several audio chunks to build a complete
-        # recording
-        while len(recording_buffer) >= settings.RECORDING_BUFFER_SIZE:
-            recording_buffer.pop(0)
-        recording_buffer.append(sampler.stream.read(sampler.chunk))
-    """
-
     # get FFT data on latest sample
     sample = utilities.averaged_spectrogram(sampler.fft)
     #print(sample)
