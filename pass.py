@@ -1,9 +1,6 @@
+import settings
 import pyaudio
 import time
-
-WIDTH = 2
-CHANNELS = 2
-RATE = 44100
 
 p = pyaudio.PyAudio()
 
@@ -15,8 +12,8 @@ stream = p.open(format=p.get_format_from_width(2),
                 rate=44100,
                 input=True,
                 output=True,
-                input_device_index=6,
-                output_device_index=6,
+                input_device_index=settings.SYNTH_MIC,
+                output_device_index=settings.SYNTH_OUT,
                 stream_callback=callback)
 
 stream.start_stream()
