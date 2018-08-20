@@ -89,7 +89,7 @@ def synth_sound(on=True, synth_sound_device=settings.SYNTH_MIC):
         message = "Reducing volume on background sound and increasing synth"
     else:
         mixvol = settings.BG_VOLUME
-        synthvol = 0
+        synthvol = settings.SYNTH_VOLUME_MINIMUM
         message = "Increasing volume on background and decreasing synth"
     logging.info(message)
     synth_mixer = alsaaudio.Mixer(control="Mic", cardindex=1,
@@ -108,6 +108,7 @@ def foreground_sound():
     channel = pygame.mixer.Sound(sound_file).play()
     while channel.get_busy():
         time.sleep(.2)
+    time.sleep(.7)
     pygame.mixer.music.unpause()
 
 
