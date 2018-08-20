@@ -92,7 +92,7 @@ def synth_sound(on=True, synth_sound_device=settings.SYNTH_MIC):
         synthvol = 0
         message = "Increasing volume on background and decreasing synth"
     logging.info(message)
-    synth_mixer = alsaaudio.Mixer(control='Capture', id=0, cardindex=-1,
+    synth_mixer = alsaaudio.Mixer(control="Mic", cardindex=1,
                                   device='default')
     pygame.mixer.music.set_volume(mixvol)
     synth_mixer.setvolume(synthvol)
@@ -106,7 +106,7 @@ def foreground_sound():
     pygame.mixer.music.pause()
     sound_file = select_random_file_from_directory("interrupt_sound/")
     channel = pygame.mixer.Sound(sound_file).play()
-    if channel.get_busy():
+    while channel.get_busy():
         time.sleep(.2)
     pygame.mixer.music.unpause()
 
