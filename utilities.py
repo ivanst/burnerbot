@@ -34,7 +34,7 @@ def select_random_file_from_directory(path, last_file=None):
     return path + return_file
 
 
-def select_in_order_from_directory(path, last_file=-1):
+def select_in_order_from_directory(path, last_file_index=-1, max_index=6):
     """
     selects files in order from a directory
     Args:
@@ -47,14 +47,15 @@ def select_in_order_from_directory(path, last_file=-1):
 
     """
     files = sorted(os.listdir(path))
-    select_file = last_file + 1
-    return path + files[select_file]
-    logging.info("Selected file is " + select_file)
-    return path + return_file
+    if last_file_index >= max_index:
+        last_file_index = -1
+    select_file_index = last_file_index + 1
+    logging.info("Selected file is " + files[select_file_index])
+    return path + files[select_file_index], select_file_index
 
 
 def background_sound_player(sound_files_path="background_sound/", start=0,
-                            play_file=None, last_file=None):
+                            play_file=None, last_file_index=-1):
     """
     A sound player that randomly selects a background sound file in order.
     Args:
@@ -64,16 +65,13 @@ def background_sound_player(sound_files_path="background_sound/", start=0,
     Returns:
         Complete path to sound file used
     """
-    if play_file is None:
-        sound_file = select_in_order_from_directory(sound_files_path)
-    else:
-        sound_file = play_file
+    sound_file, index = select_in_order_from_directory(sound_files_path, last_file_index)
     pygame.mixer.music.set_volume(settings.BG_VOLUME)
     pygame.mixer.music.load(sound_file)
     pygame.mixer.music.set_endevent(24)
     pygame.mixer.music.play(loops=0, start=start / 1000)
     logging.info("Background sound player playing " + sound_file)
-    return sound_file
+    return index
 
 
 def synth_sound(on=True, synth_sound_device=settings.SYNTH_MIC):
