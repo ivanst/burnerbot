@@ -55,7 +55,7 @@ while True:
             logging.info("Background sound ended")
             sound_file = utilities.background_sound_player(
                 "background_sound/",
-                last_file=sound_file
+                last_file_index=sound_file
             )
         elif event.type == 25:
             logging.info("Interrupt signal received.")
