@@ -82,7 +82,7 @@ def synth_sound(on=True, synth_sound_device=settings.SYNTH_MIC):
         synth_sound_device
     """
     if on:
-        mixvol = 0
+        mixvol = settings.BG_VOLUME_MINIMUM
         synthvol=settings.SYNTH_VOLUME
         message = "Reducing volume on background sound and increasing synth"
     else:
